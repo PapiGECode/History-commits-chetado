@@ -1,0 +1,37 @@
+name: GitHub Activity Booster
+
+on:
+  schedule:
+    # Run 5 times a day (UTC) to keep a high contribution count
+    - cron: '0 4,9,14,18,22 * * *'
+  workflow_dispatch: # Allows manual trigger
+
+jobs:
+  boost:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure Git identity
+        run: |
+          git config user.name "PapiGECode"
+          git config user.email "pablopme42@gmail.com"
+
+      - name: Generate high activity commits
+        run: |
+          # Create a random number of commits (4‑7) each run
+          TOTAL_COMMITS=$(shuf -i 4-7 -n 1)
+          for i in $(seq 1 $TOTAL_COMMITS); do
+            TIMESTAMP=$(date -u '+%Y-%m-%d %H:%M:%S UTC')
+            echo "Update log: $TIMESTAMP (seq: $i)" >> activity_log.txt
+            git add activity_log.txt
+            git commit -m "Update log: $TIMESTAMP"
+            sleep 1
+          done
+          git pull --rebase origin main || true
+          git push origin main
